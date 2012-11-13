@@ -183,7 +183,7 @@ public class CHC
     
     Comparator<Genotipo> getMinComparator()
     {   
-        return new GenotipoComparator(func, Mode.Maximize);
+        return new GenotipoComparator(func, Mode.Minimize);
     }
     
     Comparator<Genotipo> getMaxComparator()
