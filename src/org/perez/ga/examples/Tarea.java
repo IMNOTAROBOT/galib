@@ -79,4 +79,24 @@ public class Tarea
         
         return -1000000 + 1.0/4.0*(double)r*1000000;
     }    
+    
+    @Override
+    public Object getFenotipo(Genotipo g)
+    {
+        Punto2D v = new Punto2D();
+        v.x = Number.getNumber(g, 5, 24);
+        v.y = Number.getNumber(g, 5, 24, 30);
+        return v;
+    }
+}
+
+class Punto2D
+{
+    double x, y;
+    
+    @Override
+    public String toString()
+    {
+        return "(" + x +", " +y +")";
+    }
 }

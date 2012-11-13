@@ -68,6 +68,14 @@ public class SGA
                 this.rnd = new Random(Integer.valueOf(p.getProperty("Seed")));} 
             else {
                 rnd = new Random();}
+            System.out.println("SGA: Simple Genetic Algorithm");
+            System.out.println("P_c = " +P_c);
+            System.out.println("P_m = " +P_m);
+            System.out.println("M = " +M);
+            System.out.println("G = " +G);
+            System.out.println("L = " +L);
+            System.out.println("Function = " +func.toString());
+            System.out.println("Verbose = " +verboseLvl);
         } catch(Exception e) {
             System.err.println("Error al leer los parametros TGA");
             System.err.println(e);
@@ -76,7 +84,7 @@ public class SGA
     }    
     
     
-    public Genotipo TGA()
+    public Genotipo SGA()
     {
         Poblacion actual;
         Genotipo best;
@@ -85,8 +93,7 @@ public class SGA
         double vals[] = new double[this.M];
         double probs[] = new double[this.M];
         
-        //0. Make k <- 1
-        k = 1;
+        //0. Make k <- 1 (done in for)
         
         //1. Generate a random population
         actual = new Poblacion(this.M,this.L, rnd);
@@ -94,7 +101,13 @@ public class SGA
         //2. Select randomly and individual from the population
         best = actual.getIndividuo(rnd.nextInt(this.M));
         
-        for(; k<this.G; k++) {
+        System.out.println("G,Best,Fitness");
+        for(k=1; k<=this.G; k++) {
+            if(this.verboseLvl>0) {
+                System.out.println(k 
+                        +", " +func.getFenotipo(best)
+                        +", " +best.getFitnessValue());
+            }
             //3. Evaluate
             //   get the data for offset linear scaling
             double prom = 0;

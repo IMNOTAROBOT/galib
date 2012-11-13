@@ -5,7 +5,7 @@
 package org.perez.ga;
 
 import java.io.File;
-import org.perez.ga.algorithms.TGA;
+import org.perez.ga.algorithms.SGA;
 
 /**
  *
@@ -24,8 +24,8 @@ public class Runner
         }
         else {
             if(args[0].equals("SGA")) {
-                TGA al = new TGA(new File(args[1]));
-                al.TGA();
+                SGA al = new SGA(new File(args[1]));
+                al.SGA();
             }
             else {
                 System.out.println("Incorrect algorithm");
