@@ -20,10 +20,10 @@ public class Runner
             System.out.println("Usage:");
             System.out.println("   java -jar GAlib.jar <Algorithm> <input-file>");
             System.out.println("Lists of algorithms:");
-            System.out.println(" - TGA: Elitist Genetic Algorithm");
+            System.out.println(" - SGA: Simple Genetic Algorithm");
         }
         else {
-            if(args[0].equals("TGA")) {
+            if(args[0].equals("SGA")) {
                 TGA al = new TGA(new File(args[1]));
                 al.TGA();
             }

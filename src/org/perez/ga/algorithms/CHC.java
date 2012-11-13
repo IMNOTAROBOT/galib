@@ -9,6 +9,8 @@ import java.util.Comparator;
 import org.perez.ga.core.Genotipo;
 import org.perez.ga.core.IFitness;
 import org.perez.ga.core.Poblacion;
+import org.perez.ga.core.GenotipoComparator;
+import org.perez.ga.core.Mode;
 
 /**
  *
@@ -178,45 +180,14 @@ public class CHC
         return ret;
     }
     
+    
     Comparator<Genotipo> getMinComparator()
-    {
-        return new Comparator<Genotipo>() 
-        {
-            @Override
-            public int compare(Genotipo o1, Genotipo o2) {
-                double r1 = o1.evalua(func);
-                double r2 = o2.evalua(func);
-                double EPS = 0.000001;
-                if(Math.abs(r1-r2)<=EPS) {
-                    return 0;
-                }
-                if(r1 < r2) {
-                    return -1;
-                }
-
-                return 1;
-            }         
-        };
+    {   
+        return new GenotipoComparator(func, Mode.Maximize);
     }
     
     Comparator<Genotipo> getMaxComparator()
     {
-        return new Comparator<Genotipo>() 
-        {
-            @Override
-            public int compare(Genotipo o1, Genotipo o2) {
-                double r1 = o1.evalua(func);
-                double r2 = o2.evalua(func);
-                double EPS = 0.000001;
-                if(Math.abs(r1-r2)<=EPS) {
-                    return 0;
-                }
-                if(r1 < r2) {
-                    return 1;
-                }
-
-                return -1;
-            }         
-        };
+        return new GenotipoComparator(func, Mode.Maximize);
     }
 }

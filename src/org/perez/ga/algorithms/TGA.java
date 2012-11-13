@@ -18,6 +18,7 @@ import org.perez.ga.core.Poblacion;
 /**
  * Elitist Canonical Genetic Algorithm
  * - Linear offset scaling
+ * - Sorted roulette selection
  * 
  * @author Fer
  */
