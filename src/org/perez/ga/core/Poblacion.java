@@ -126,6 +126,17 @@ public class Poblacion
         */
     }
     
+    public Genotipo getBest(Comparator<Genotipo> c)
+    {
+        Genotipo b = this.indi.get(0);
+        for(int i=0; i<this.indi.size(); i++) {
+            if(c.compare(b, indi.get(i)) < 0) {
+                b = indi.get(i);
+            }
+        }
+        return b;
+    }
+    
     public void addIndividuo(Genotipo g)
     {
         this.indi.add(g);

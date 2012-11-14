@@ -78,75 +78,64 @@ public class TGA
     }    
     
     
+    double[] escalaPoblacion(Poblacion actual)
+    {
+        double[] vals = new double[actual.getSize()];
+        double prom = 0;
+        double v;
+        double minv = Double.MAX_VALUE;
+        double F = 0;
+        //3. Evaluate
+        //   get the data for offset linear scaling
+        for(int i=0; i<actual.getSize(); i++) {
+            v = actual.getIndividuo(i).evalua(func);
+            minv = Math.min(v, minv);
+            prom += Math.abs(v);
+            vals[i] = v;
+        }
+        prom /= this.M;
+        //   precalculating new fitness, F, probs
+        for(int i=0; i<actual.getSize(); i++) {
+            actual.getIndividuo(i).
+                    setFitnessValue(
+                    offsetLinealScaling(vals[i], prom, minv));
+            //TODO: Use the comparator
+            F += actual.getIndividuo(i).getFitnessValue();
+        }
+        actual.sort(comp);
+        for(int i=0; i<actual.getSize(); i++) {
+            vals[i] = actual.getIndividuo(i).getFitnessValue();
+            vals[i] /= F;
+        }
+        
+        return vals;
+    }
+
     public Genotipo TGA()
     {
         Poblacion actual;
         Poblacion nva;
         Genotipo best;
         int k;
-        double F;
-        double vals[] = new double[this.M];
-        double probs[] = new double[this.M];
+        double probs[];
         
-        //0. Make k <- 1
-        k = 1;
-        
-        //1. Generate a random population
-        actual = new Poblacion(this.M,this.L, rnd);
-        
-        //2. Select randomly and individual from the population
-        best = actual.getIndividuo(rnd.nextInt(this.M));
-        
+        k = 1; //0. Make k <- 1
+        actual = new Poblacion(this.M,this.L, rnd); //1. Generate a random population       
+        best = actual.getIndividuo(rnd.nextInt(this.M));//2. Select randomly and individual from the population
         System.out.println("G,Best,Fitness");
-        for(; k<this.G; k++) {
+        for(; k<this.G; k++) { //4. If k = G return best and stop(done)
             if(this.verboseLvl>0) {
                 System.out.println(k 
                         +", " +func.getFenotipo(best)
                         +", " +func.evalua(best));
             }
-
-            
-            //3. Evaluate
-            //   get the data for offset linear scaling
-            double prom = 0;
-            double v;
-            double minv = Double.MAX_VALUE;
-            for(int i=0; i<this.M; i++) {
-                v = actual.getIndividuo(i).evalua(func);
-                minv = Math.min(v, minv);
-                prom += Math.abs(v);
-                vals[i] = v;
-            }
-            prom /= this.M;
-            minv = Math.abs(minv);
-            
-            //   precalculating new fitness, F, probs
-            F = 0;
-            for(int i=0; i<this.M; i++) {
-                actual.getIndividuo(i).
-                        setFitnessValue(
-                        offsetLinealScaling(vals[i], prom, minv));
-                //TODO: Use the comparator
-                if(comp.compare(best, actual.getIndividuo(i))<0) {
-                    best = actual.getIndividuo(i);
-                }
-                F += actual.getIndividuo(i).getFitnessValue();
-            }
-            
-            actual.sort(comp);
-            for(int i=0; i<this.M; i++) {
-                probs[i] = actual.getIndividuo(i).getFitnessValue();
-                probs[i] /= F;
-            }
-
-            //4. If k = G return best and stop(done)
-
             //5. Selection
             //Make F = sum fitness x_i (done)
             //for i=1 to n PS_i = f(x_i)/F (done)
             //for i=1 to n Select I(i) with probability PS_i (done)
             //its the probability
-
+            probs = escalaPoblacion(actual);
+            best = actual.getBest(comp);
             //6. Crossover
             //   for i=1 to n step 2
             int i_x, i_y;
@@ -156,8 +145,8 @@ public class TGA
             for(int i=1; i<this.M; i+=2) {
                 //Randomly select two individuals(i_x, i_y) with
                 //probabilities PS_x and PS_y, respect
-                i_x = select_roulette(probs, F);
-                i_y = select_roulette(probs, F);
+                i_x = this.escogeRuleta(probs);
+                i_y = this.escogeRuleta(probs);
                 g_x = actual.getIndividuo(i_x);
                 g_y = actual.getIndividuo(i_y);
                 //generate a random number 0<=ro<1
@@ -177,10 +166,8 @@ public class TGA
                 if(i+1<this.M) {
                     this.mutate(res[1]); //7. Mutation
                     nva.addIndividuo(res[1]);
-                    
                 }
             }
-
             actual = nva;
         }
         
@@ -218,15 +205,14 @@ public class TGA
      * Given a vector or probabilities, select
      * proportionalitty a index
      * @param probs An array with the probabilites
-     * @param sum The sum of the probabilites
      * @return and index corresponding to the individual
      * select via roulette
      */
-    int select_roulette(double probs[], double sum)
+    int escogeRuleta(double probs[])
     {
         double acum = 0;
         int res = 0;
-        double tope = rnd.nextDouble()*sum;
+        double tope = rnd.nextDouble();
         while(res<probs.length && acum < tope) {
             acum += probs[res++];
         }
