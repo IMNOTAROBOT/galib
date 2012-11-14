@@ -126,11 +126,11 @@ public class Poblacion
         */
     }
     
-    public Genotipo getBest(Comparator<Genotipo> c)
+    public Genotipo getBest(IFitness f)
     {
         Genotipo b = this.indi.get(0);
         for(int i=0; i<this.indi.size(); i++) {
-            if(c.compare(b, indi.get(i)) < 0) {
+            if(b.evalua(f) < indi.get(i).evalua(f)) {
                 b = indi.get(i);
             }
         }

@@ -13,8 +13,8 @@ public class Tarea
     @Override
     public double evalua(Genotipo g) 
     {
-        double x = Number.getNumber(g, 5, 24);
-        double y = Number.getNumber(g, 5, 24, 30);
+        double x = Number.getNumber(g, 6, 24);
+        double y = Number.getNumber(g, 6, 24, 30);
         int r = 0;
         if(2*x + 3*y <= 12.0)
             r++;

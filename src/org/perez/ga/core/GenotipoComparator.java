@@ -29,10 +29,8 @@ public class GenotipoComparator
     {
         int m = 1;
         if(mode==Mode.Maximize)  {
-            //m = -1;
-        }
-        
-        
+            m = -1;
+        }       
         double r1 = o1.getFitnessValue();
         double r2 = o2.getFitnessValue();
         return Double.compare(r1, r2)* m;
