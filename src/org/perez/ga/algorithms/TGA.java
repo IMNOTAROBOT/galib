@@ -12,14 +12,15 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import org.perez.ga.core.Genotipo;
+import org.perez.ga.core.GenotipoComparator;
 import org.perez.ga.core.IFitness;
+import org.perez.ga.core.Mode;
 import org.perez.ga.core.Poblacion;
 
 /**
  * Elitist Canonical Genetic Algorithm
  * - Linear offset scaling
  * - Sorted roulette selection
- * 
  * @author Fer
  */
 public class TGA 
@@ -37,6 +38,7 @@ public class TGA
     
     private Random rnd;
     private IFitness func;
+    private GenotipoComparator comp;
     
     private int verboseLvl;
     
@@ -47,11 +49,8 @@ public class TGA
     
     public TGA(File f)
     {
-        
-        Scanner jin = null;
         Properties p = null;
         try {
-            jin = new Scanner(f);
             p = new Properties();
             p.load(new FileInputStream(f.getAbsoluteFile()));
             P_c = Double.valueOf(p.getProperty("P_c"));
@@ -61,6 +60,8 @@ public class TGA
             G = Integer.valueOf(p.getProperty("G"));
             L = Integer.valueOf(p.getProperty("L"));
             func = (IFitness)Class.forName(p.getProperty("Func")).newInstance();
+            Mode m = Mode.valueOf(p.getProperty("Mode"));
+            comp = new GenotipoComparator(func, m);
             if(p.containsKey("Verbose")) {
                 this.verboseLvl = Integer.valueOf(p.getProperty("Verbose"));}
             else {
@@ -80,6 +81,7 @@ public class TGA
     public Genotipo TGA()
     {
         Poblacion actual;
+        Poblacion nva;
         Genotipo best;
         int k;
         double F;
@@ -95,7 +97,15 @@ public class TGA
         //2. Select randomly and individual from the population
         best = actual.getIndividuo(rnd.nextInt(this.M));
         
+        System.out.println("G,Best,Fitness");
         for(; k<this.G; k++) {
+            if(this.verboseLvl>0) {
+                System.out.println(k 
+                        +", " +func.getFenotipo(best)
+                        +", " +func.evalua(best));
+            }
+
+            
             //3. Evaluate
             //   get the data for offset linear scaling
             double prom = 0;
@@ -109,22 +119,23 @@ public class TGA
             }
             prom /= this.M;
             minv = Math.abs(minv);
+            
             //   precalculating new fitness, F, probs
-            double minv2 = Double.MAX_VALUE;
             F = 0;
             for(int i=0; i<this.M; i++) {
                 actual.getIndividuo(i).
                         setFitnessValue(
                         offsetLinealScaling(vals[i], prom, minv));
                 //TODO: Use the comparator
-                if(actual.getIndividuo(i).getFitnessValue() < minv2) {
+                if(comp.compare(best, actual.getIndividuo(i))<0) {
                     best = actual.getIndividuo(i);
-                    minv2 = best.getFitnessValue();
                 }
                 F += actual.getIndividuo(i).getFitnessValue();
-                probs[i] = actual.getIndividuo(i).getFitnessValue();
             }
+            
+            actual.sort(comp);
             for(int i=0; i<this.M; i++) {
+                probs[i] = actual.getIndividuo(i).getFitnessValue();
                 probs[i] /= F;
             }
 
@@ -140,8 +151,9 @@ public class TGA
             //   for i=1 to n step 2
             int i_x, i_y;
             Genotipo g_x, g_y;
-            double ro;
-            for(int i=0; i<this.M; i+=2) {
+            nva = new Poblacion(actual.getSize());
+            nva.addIndividuo((Genotipo)best.clone());
+            for(int i=1; i<this.M; i+=2) {
                 //Randomly select two individuals(i_x, i_y) with
                 //probabilities PS_x and PS_y, respect
                 i_x = select_roulette(probs, F);
@@ -150,23 +162,26 @@ public class TGA
                 g_y = actual.getIndividuo(i_y);
                 //generate a random number 0<=ro<1
                 //if ro<=P_c do
+                Genotipo res[];
                 if(toss(this.P_c)) {
                     //do crossover
-                    Genotipo res[] = this.crossover(g_x, g_y);
-                    actual.setIndividuo(i, res[0]);
-                    if(i+1 < this.M) { //por los impares
-                        actual.setIndividuo(i+1, res[1]);
-                    }
+                    res = this.crossover(g_x, g_y);
+                }
+                else {
+                    res = new Genotipo[2];
+                    res[0] = (Genotipo)g_x.clone();
+                    res[1] = (Genotipo)g_y.clone();
+                }
+                this.mutate(res[0]); //7. Mutation
+                nva.addIndividuo(res[0]);
+                if(i+1<this.M) {
+                    this.mutate(res[1]); //7. Mutation
+                    nva.addIndividuo(res[1]);
+                    
                 }
             }
 
-            //7. Mutation
-            //   for i=1 to n
-            for(int i=0; i<this.M; i++) {
-                //Select I(i)
-                // do muattion
-                this.mutate(actual.getIndividuo(i));
-            }
+            actual = nva;
         }
         
         return best;

@@ -1,8 +1,9 @@
 P_c = 0.9
-P_m = 0.01
+P_m = 0.05
 M = 100
 G = 10000
 L = 60
 Func = org.perez.ga.examples.Tarea
+Mode = Maximize
 Verbose = 1
-Seed = 1093209
+#Seed = 1093209

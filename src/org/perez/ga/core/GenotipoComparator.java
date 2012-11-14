@@ -29,11 +29,14 @@ public class GenotipoComparator
     {
         int m = 1;
         if(mode==Mode.Maximize)  {
-            m = -1;
+            //m = -1;
         }
         
-        double r1 = o1.evalua(func);
-        double r2 = o2.evalua(func);
+        
+        double r1 = o1.getFitnessValue();
+        double r2 = o2.getFitnessValue();
+        return Double.compare(r1, r2)* m;
+        /*
         double EPS = 0.000001;
         if(Math.abs(r1-r2)<=EPS) {
             return 0;
@@ -43,5 +46,6 @@ public class GenotipoComparator
         }
 
         return -1 * m;
+        */
     }
 }
