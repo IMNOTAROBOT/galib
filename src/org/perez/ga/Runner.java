@@ -7,6 +7,7 @@ package org.perez.ga;
 import java.io.File;
 import org.perez.ga.algorithms.SGA;
 import org.perez.ga.algorithms.TGA;
+import org.perez.ga.core.Genotipo;
 
 /**
  *
@@ -22,6 +23,7 @@ public class Runner
             System.out.println("   java -jar GAlib.jar <Algorithm> <input-file>");
             System.out.println("Lists of algorithms:");
             System.out.println(" - SGA: Simple Genetic Algorithm");
+            System.out.println(" - TGA: Elitist Simple Genetic Algorithm");
         }
         else {
             if(args[0].equals("SGA")) {

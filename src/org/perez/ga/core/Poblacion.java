@@ -137,6 +137,17 @@ public class Poblacion
         return b;
     }
     
+    public Genotipo getWorst(IFitness f)
+    {
+        Genotipo b = this.indi.get(0);
+        for(int i=0; i<this.indi.size(); i++) {
+            if(b.evalua(f) > indi.get(i).evalua(f)) {
+                b = indi.get(i);
+            }
+        }
+        return b;
+    }
+    
     public void addIndividuo(Genotipo g)
     {
         this.indi.add(g);

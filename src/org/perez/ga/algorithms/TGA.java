@@ -40,12 +40,7 @@ public class TGA
     
     private int verboseLvl;
     private Genotipo best;
-    
-    ///** minim = 0, maxim = 1 */
-    //private int mode = 0;
-    //private Comparator<Genotipo> compMin;
-    //private Comparator<Genotipo> compMax;
-    
+        
     public TGA(File f)
     {
         Properties p = null;
@@ -71,88 +66,102 @@ public class TGA
             System.exit(1);
         }
     }    
-    
-    
-    double[] escalaPoblacion(Poblacion actual)
-    {
-        //Make F = sum fitness x_i (done)
-        //for i=1 to n Select I(i) with probability PS_i (done)
-        //its the probability
-        double[] vals = new double[actual.getSize()];
-        double prom = 0.0;
-        double v;
-        double minv = Double.MAX_VALUE;
-        double F = 0.0;
-        //3. Evaluate
-        //   get the data for offset linear scaling
-        for(int i=0; i<actual.getSize(); i++) {
-            v = actual.getIndividuo(i).evalua(func);
-            minv = Math.min(v, minv);
-            prom += Math.abs(v);
-            vals[i] = v;
-        }
-        prom /= this.M;
-        best = actual.getBest(func);
-        //   precalculating new fitness, F, probs
-        for(int i=0; i<actual.getSize(); i++) {
-            actual.getIndividuo(i).
-                setFitnessValue(
-                    offsetLinealScaling(vals[i], prom, minv));
-            //TODO: Use the comparator
-            F += actual.getIndividuo(i).getFitnessValue();
-        }
-        actual.sort(comp);
-        for(int i=0; i<actual.getSize(); i++) { //for i=1 to n PS_i = f(x_i)/F (done)
-            vals[i] = actual.getIndividuo(i).getFitnessValue();
-            vals[i] /= F;
-        }
-        
-        return vals;
-    }
 
     public Genotipo TGA()
     {
         Poblacion actual;
         Poblacion nva;
-        int k;
         double probs[];
-        Genotipo res[];
+        Genotipo res[] = new Genotipo[2];
         Genotipo g_x, g_y;
         
-        k = 1; //0. Make k <- 1
-        actual = new Poblacion(this.M,this.L, rnd); //1. Generate a random population       
-        best = actual.getIndividuo(rnd.nextInt(this.M));//2. Select randomly and individual from the population
+        
+        actual = new Poblacion(M, L, rnd); //1. Generate a random population       
+        //best = actual.getBest(func);
+        best = actual.getIndividuo(rnd.nextInt(M));//2. Select randomly and individual from the population
         System.out.println("G,Best,Fitness");
-        for(; k<=this.G; k++) { //4. If k = G return best and stop(done)
+        //0. Make k <- 1
+        for(int k = 1; k<=G; k++) { //4. If k = G return best and stop(done)
             if(this.verboseLvl>0) {
                 System.out.println(k +", " +func.getFenotipo(best) +", " +func.evalua(best)); }
             
             probs = escalaPoblacion(actual); //5. Selection
             //6. Crossover
             nva = new Poblacion(actual.getSize());
-            nva.addIndividuo((Genotipo)best.clone());
-            for(int i=1; i<this.M; i+=2) { //   for i=1 to n step 2
+            int hechos = 0;
+            while(hechos < M) { //   for i=1 to n step 2
                 g_x = actual.getIndividuo( this.escogeRuleta(probs) ); //Randomly select two individuals(i_x, i_y) with
                 g_y = actual.getIndividuo( this.escogeRuleta(probs) ); //probabilities PS_x and PS_y, respect
-                if(toss(this.P_c)) { //generate rand and if ro<=P_c do
+                if(toss(P_c)) { //generate rand and if ro<=P_c do
                     res = this.crossover(g_x, g_y); //do crossover
                 }
                 else {
-                    res = new Genotipo[2];
                     res[0] = (Genotipo)g_x.clone();
                     res[1] = (Genotipo)g_y.clone();
                 }
                 this.mutate(res[0]); //7. Mutation
                 nva.addIndividuo(res[0]);
-                if(i+1<this.M) {
+                hechos++;
+                if(hechos<M) {
                     this.mutate(res[1]); //7. Mutation
                     nva.addIndividuo(res[1]);
+                    hechos++;
                 }
             }
+            Genotipo b = actual.getBest(func);
             actual = nva;
+            if( func.evalua(best) < func.evalua(b) ) //max
+                best = b;
+
+            int idx = 0;
+            b = actual.getIndividuo(0);
+            for(int i=0; i<actual.getSize(); i++) {
+                if(b.evalua(func) > actual.getIndividuo(i).evalua(func)) {
+                    b = actual.getIndividuo(i);
+                    idx = i;
+                }
+            }
+            actual.setIndividuo(idx, b);
         }
         
         return best;
+    }
+    
+    
+    
+    double[] escalaPoblacion(Poblacion p)
+    {
+        //Make F = sum fitness x_i (done)
+        //for i=1 to n Select I(i) with probability PS_i (done)
+        //its the probability
+        int tam = p.getSize();
+        double[] vals = new double[tam];
+        double prom = 0.0;
+        double v;
+        double minv = Double.MAX_VALUE;
+        double F = 0.0;
+        //3. Evaluate
+        for(int i=0; i<tam; i++) {
+            v = p.getIndividuo(i).evalua(func);
+            //   get the data for offset linear scaling
+            minv = Math.min(v, minv);
+            prom += Math.abs(v);
+            vals[i] = v;
+        }
+        prom /= this.M;
+        //   F_i = Phi(i), F, probs
+        for(int i=0; i<tam; i++) {
+            v = vals[i] + prom + minv;
+            p.getIndividuo(i).setFitnessValue(v);
+            F += v;
+        }
+        p.sort(comp); //desc for max, asc for min
+        for(int i=0; i<tam; i++) { //for i=1 to n PS_i = f(x_i)/F (done)
+            vals[i] = p.getIndividuo(i).getFitnessValue();
+            vals[i] /= F;
+        }
+        
+        return vals;
     }
     
     /**
@@ -172,15 +181,12 @@ public class TGA
     protected void mutate(Genotipo g)
     {
         int tam = g.getSize();
-        //for j=1 to L
-        for(int i=0; i<tam; i++) {
-            //Generate a rand 0<=ro<1
-            if(toss(this.P_m)) { //if ro<=P_m make bit_j = !bit_j 
+        for(int i=0; i<tam; i++) { //for j=1 to L
+            if(toss(this.P_m)) { //if rand ro<=P_m make bit_j = !bit_j 
                 g.setGen(i, !g.getGen(i));
             }
         }
     }
-
     
     /**
      * Given a vector or probabilities, select
@@ -226,7 +232,6 @@ public class TGA
             arr[0].setGen(i, b.getGen(i));
             arr[1].setGen(i, a.getGen(i));
         }
-        
         for(; i<this.L; i++) {
             arr[0].setGen(i, a.getGen(i));
             arr[1].setGen(i, b.getGen(i));

@@ -166,6 +166,9 @@ public class Genotipo
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
+        sb.append("f=").append(fitness);
+        sb.append(" b=").append(this.numGenes).append(' ');
+        
         for(int i=0; i<numGenes;i++) {
             sb.append(getGen(i)? '1':'0');
         }
