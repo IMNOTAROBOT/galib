@@ -4,19 +4,16 @@
  */
 package org.perez.ga.algorithms;
 
-import org.perez.ga.core.Par;
 import java.util.Comparator;
 import java.util.Random;
 import java.util.Properties;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Arrays;
 import org.perez.ga.core.Genotipo;
 import org.perez.ga.core.GenotipoComparator;
 import org.perez.ga.core.IFitness;
 import org.perez.ga.core.Mode;
 import org.perez.ga.core.Poblacion;
-import org.perez.ga.core.Par;
 
 /**
  * Elitist Canonical Genetic Algorithm
@@ -81,27 +78,25 @@ public class TGA
     
     public Genotipo TGA()
     {
-        Poblacion actual;
         Poblacion nva;
         double probs[];
         Genotipo res[] = new Genotipo[2];
         Genotipo g_x, g_y;
+        int hechos;
         
-        
-        actual = new Poblacion(M, L, rnd); //1. Generate a random population       
-        //best = actual.getBest(func);
-        mejorInd = actual.getIndividuo(rnd.nextInt(M));//2. Select randomly and individual from the population
-        System.out.println("G,Best,Fitness");
+        pobActual = new Poblacion(M, L, rnd); //1. Generate a random population       
+        //mejorInd = pobActual.getBest(func);
+        mejorInd = pobActual.getIndividuo(rnd.nextInt(M));//2. Select randomly and individual from the population
+        println("G,Best,Fitness");
         //0. Make k <- 1
         for(int k=1; k<=G; k++) { //4. If k = G return best and stop(done)
-            println(k +", " +func.getFenotipo(actual.getBest(func)) +", " +func.evalua(actual.getBest(func)));
-            probs = escalaPoblacion(actual); //5. Selection
+            probs = generaRuleta(pobActual); //5. Selection
             //6. Crossover
-            nva = new Poblacion(actual.getSize());
-            int hechos = 0;
+            nva = new Poblacion(pobActual.getSize());
+            hechos = 0;
             while(hechos < M) { //   for i=1 to n step 2
-                g_x = actual.getIndividuo( this.escogeRuleta(probs) ); //Randomly select two individuals(i_x, i_y) with
-                g_y = actual.getIndividuo( this.escogeRuleta(probs) ); //probabilities PS_x and PS_y, respect
+                g_x = pobActual.getIndividuo( this.escogeRuleta(probs) ); //Randomly select two individuals(i_x, i_y) with
+                g_y = pobActual.getIndividuo( this.escogeRuleta(probs) ); //probabilities PS_x and PS_y, respect
                 if(toss(P_c)) { //generate rand and if ro<=P_c do
                     res = this.crossover(g_x, g_y); //do crossover
                 }
@@ -118,28 +113,48 @@ public class TGA
                     hechos++;
                 }
             }
-            Genotipo b = actual.getBest(func);
-            actual = nva;
+            Genotipo b = pobActual.getBest(func);
+            pobActual = nva;
             if( func.evalua(mejorInd) < func.evalua(b) ) { //max {
                 mejorInd = b;
             }
-            //else {
-                int idx = 0;
-                b = actual.getIndividuo(0);
-                for(int i=0; i<actual.getSize(); i++) {
-                    if(b.getFitness(func) > actual.getIndividuo(i).getFitness(func)) {
-                        b = actual.getIndividuo(i);
-                        idx = i;
-                    }
+
+            int idx = 0;
+            b = pobActual.getIndividuo(0);
+            for(int i=0; i<pobActual.getSize(); i++) {
+                if(b.getFitness(func) > pobActual.getIndividuo(i).getFitness(func)) {
+                    b = pobActual.getIndividuo(i);
+                    idx = i;
                 }
-                actual.setIndividuo(idx, b);
-            //}
+            }
+            pobActual.setIndividuo(idx, b);
+            println(k +", " +func.getFenotipo(pobActual.getBest(func)) +", " +func.evalua(pobActual.getBest(func)));
         }
-        
+        System.out.println("Mejor: " +func.getFenotipo(mejorInd) 
+                            +", Fitness: " +func.evalua(mejorInd));
         return mejorInd;
     }
     
-    double[] escalaPoblacion(Poblacion p)
+    double[] generaRuleta(Poblacion p)
+    {
+        int tam = p.getSize();
+        double[] vals = new double[tam];
+        double F = 0.0;
+        
+        this.escalaPoblacion(p);
+        p.sort(comp);
+        for(int i=0; i<tam; i++) {
+            F += p.getIndividuo(i).getFitnessValue();
+        }
+        for(int i=0; i<tam; i++) { //for i=1 to n PS_i = f(x_i)/F (done)
+            vals[i] = p.getIndividuo(i).getFitnessValue();
+            vals[i] /= F;
+        }
+        
+        return vals;
+    }
+    
+    void escalaPoblacion(Poblacion p)
     {
         //Make F = sum fitness x_i (done)
         //for i=1 to n Select I(i) with probability PS_i (done)
@@ -149,34 +164,20 @@ public class TGA
         double prom = 0.0;
         double v;
         double minv = Double.MAX_VALUE;
-        double F = 0.0;
-        //3. Evaluate
+        //3. Evaluate get the data for offset linear scaling
         for(int i=0; i<tam; i++) {
             v = p.getIndividuo(i).getFitness(func);
-            //   get the data for offset linear scaling
             minv = Math.min(v, minv);
             prom += Math.abs(v);
             vals[i] = v;
         }
         prom /= this.M;
+        minv = Math.abs(minv);
         //   F_i = Phi(i), F, probs
         for(int i=0; i<tam; i++) {
             v = vals[i] + prom + minv;
-            //v = scale(vals[i],prom, minv);
             p.getIndividuo(i).setFitnessValue(v);
-            F += v;
         }
-        
-        p.sort(comp); //desc for max, asc for min
-        
-        for(int i=0; i<tam; i++) { //for i=1 to n PS_i = f(x_i)/F (done)
-            vals[i] = p.getIndividuo(i).getFitnessValue();
-            vals[i] /= F;
-        }
-        
-        
-        
-        return vals;
     }
     
     /**
@@ -199,7 +200,7 @@ public class TGA
             }
         }
     }
-        
+
     /**
      * Given a vector or probabilities, select
      * proportionalitty a index
@@ -253,19 +254,4 @@ public class TGA
         
         return arr;
     }
-    
-    /**
-     * Calculates the Offset linear scaling given by
-     * Phi = f(x_i) + |mean| +|min|
-     * @param v The actual value
-     * @param mean Mean of the fitness function of all indiviuals
-     * @param min Min value of the fitness function of all indiviuals
-     * @return A double with Phi
-     */
-    private double scale(double v, double mean, double min)
-    {
-        System.out.println("v=" +v +", m=" +mean +", min=" +min);
-        return v + mean + Math.abs(min);
-    }
-
 }

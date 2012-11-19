@@ -13,8 +13,9 @@ public class Tarea
     @Override
     public double evalua(Genotipo g) 
     {
-        double x = Number.getNumber(g, 6, 24);
-        double y = Number.getNumber(g, 6, 24, 30);
+        Punto2D v = new Punto2D(g);
+        double x = v.x;
+        double y = v.y;
         int r = 0;
         if(2*x + 3*y <= 12.0)
             r++;
@@ -34,16 +35,19 @@ public class Tarea
     @Override
     public Object getFenotipo(Genotipo g)
     {
-        Punto2D v = new Punto2D();
-        v.x = Number.getNumber(g, 5, 24);
-        v.y = Number.getNumber(g, 5, 24, 30);
-        return v;
+        return new Punto2D(g);
     }
 }
 
 class Punto2D
 {
     double x, y;
+    
+    public Punto2D(Genotipo g)
+    {
+        x = Number.getNumber(g, 5, 24);
+        y = Number.getNumber(g, 5, 24, 30);        
+    }
     
     @Override
     public String toString()

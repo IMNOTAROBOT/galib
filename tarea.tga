@@ -1,8 +1,8 @@
 P_c = 0.7
 P_m = 0.01
 M = 100
-G = 1000
-L = 62
+G = 10000
+L = 60
 Func = org.perez.ga.examples.Tarea
 Mode = Maximize
 Verbose = 1

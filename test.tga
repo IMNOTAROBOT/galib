@@ -1,0 +1,9 @@
+P_c = 0.7
+P_m = 0.7
+M = 10
+G = 1000
+L = 10
+Func = org.perez.ga.examples.Prueba
+Mode = Maximize
+Verbose = 1
+Seed = 1903

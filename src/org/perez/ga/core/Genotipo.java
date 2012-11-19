@@ -14,7 +14,7 @@ public class Genotipo
     /**
      * Tamaño en bits de un entero
      */
-    private final int BITSM = 32;
+    private static final int BITSM = 32;
     
     /**
     * Cada bit del entero es un gen del individuo
@@ -63,7 +63,7 @@ public class Genotipo
         }
         
         this.numGenes = numGenes;
-        this.fitness = 0.0001; //TODO: Choose a better value
+        this.fitness = Double.NaN; //TODO: Choose a better value
     }
     
     /**
@@ -96,7 +96,7 @@ public class Genotipo
             System.exit(1);
         }
         
-        return this.getGen(pos/numGenes, pos%numGenes);        
+        return this.getGen(pos/BITSM, pos%BITSM);        
     }
     
     /**
@@ -111,7 +111,7 @@ public class Genotipo
             System.out.println("Error en Genotipo: Indice fuera de los limites");
             System.exit(1);
         }
-        this.setGen(pos/numGenes, pos%numGenes, valor);
+        this.setGen(pos/BITSM, pos%BITSM, valor);
     }
     
     /**
@@ -166,12 +166,11 @@ public class Genotipo
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("f=").append(fitness);
-        sb.append(" b=").append(this.numGenes).append(' ');
-        
         for(int i=0; i<numGenes;i++) {
             sb.append(getGen(i)? '1':'0');
         }
+        sb.append(" f=").append(fitness);
+        sb.append(" b=").append(this.numGenes);
                 
         return sb.toString();
     }
