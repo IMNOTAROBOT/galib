@@ -130,7 +130,7 @@ public class Poblacion
     {
         Genotipo b = this.indi.get(0);
         for(int i=0; i<this.indi.size(); i++) {
-            if(b.evalua(f) < indi.get(i).evalua(f)) {
+            if(b.getFitness(f) < indi.get(i).getFitness(f)) {
                 b = indi.get(i);
             }
         }
@@ -141,7 +141,7 @@ public class Poblacion
     {
         Genotipo b = this.indi.get(0);
         for(int i=0; i<this.indi.size(); i++) {
-            if(b.evalua(f) > indi.get(i).evalua(f)) {
+            if(b.getFitness(f) > indi.get(i).getFitness(f)) {
                 b = indi.get(i);
             }
         }

@@ -32,6 +32,7 @@ public class Runner
             }
             else if(args[0].equals("TGA")) {
                 TGA al = new TGA(new File(args[1]));
+                //al.run();
                 al.TGA();
             }
             else {

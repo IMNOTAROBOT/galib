@@ -14,7 +14,7 @@ public class Genotipo
     /**
      * Tamaño en bits de un entero
      */
-    private final int bitsm = 32;
+    private final int BITSM = 32;
     
     /**
     * Cada bit del entero es un gen del individuo
@@ -55,11 +55,11 @@ public class Genotipo
             System.err.println("Error: El numero de genes debe ser mayor a 0");
             System.exit(1);
         }
-        if(numGenes%bitsm==0) {
-            this.genes = new int[numGenes/bitsm];
+        if(numGenes%BITSM==0) {
+            this.genes = new int[numGenes/BITSM];
         }
         else {
-            this.genes = new int[numGenes/bitsm + 1];
+            this.genes = new int[numGenes/BITSM + 1];
         }
         
         this.numGenes = numGenes;
@@ -124,11 +124,11 @@ public class Genotipo
     {
         int mask;
         if(valor) {
-            mask = 1 << (bitsm - 1 - pos);
+            mask = 1 << (BITSM - 1 - pos);
             genes[ind] = genes[ind] | mask;
         }
         else {
-            mask = 1 << (bitsm - 1 - pos);
+            mask = 1 << (BITSM - 1 - pos);
             mask = ~mask; //deberia funcionar
             genes[ind] = genes[ind] & mask;
         }
@@ -144,7 +144,7 @@ public class Genotipo
     */
     private boolean getGen(int ind, int pos)
     {
-        int mask = 1 << (bitsm - 1 - pos);
+        int mask = 1 << (BITSM - 1 - pos);
         
         return (genes[ind] & mask)!=0;
     }
@@ -181,7 +181,7 @@ public class Genotipo
     {
         try {
             return super.clone();
-        } catch (CloneNotSupportedException ex) {
+        } catch (Exception ex) {
             System.err.println("ERROR al clonar: ");
             System.err.println(ex);
             System.exit(1);
@@ -217,7 +217,7 @@ public class Genotipo
         return bi.hashCode();
     }
     
-    public double evalua(IFitness f)
+    public double getFitness(IFitness f)
     {
         return f.evalua(this);
     }

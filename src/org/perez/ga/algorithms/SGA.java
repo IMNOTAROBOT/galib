@@ -114,7 +114,7 @@ public class SGA
             double v;
             double minv = Double.MAX_VALUE;
             for(int i=0; i<this.M; i++) {
-                v = actual.getIndividuo(i).evalua(func);
+                v = actual.getIndividuo(i).getFitness(func);
                 minv = Math.min(v, minv);
                 prom += Math.abs(v);
                 vals[i] = v;

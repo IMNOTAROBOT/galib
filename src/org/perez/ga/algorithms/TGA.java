@@ -4,16 +4,19 @@
  */
 package org.perez.ga.algorithms;
 
+import org.perez.ga.core.Par;
 import java.util.Comparator;
 import java.util.Random;
 import java.util.Properties;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Arrays;
 import org.perez.ga.core.Genotipo;
 import org.perez.ga.core.GenotipoComparator;
 import org.perez.ga.core.IFitness;
 import org.perez.ga.core.Mode;
 import org.perez.ga.core.Poblacion;
+import org.perez.ga.core.Par;
 
 /**
  * Elitist Canonical Genetic Algorithm
@@ -39,7 +42,9 @@ public class TGA
     private GenotipoComparator comp;
     
     private int verboseLvl;
-    private Genotipo best;
+    private Poblacion pobActual;
+    private Genotipo mejorInd;
+    private int mejorGeneracion;
         
     public TGA(File f)
     {
@@ -67,6 +72,13 @@ public class TGA
         }
     }    
 
+    private void println(String s)
+    {
+        if(verboseLvl>0) {
+            System.out.println(s);
+        }
+    }
+    
     public Genotipo TGA()
     {
         Poblacion actual;
@@ -78,13 +90,11 @@ public class TGA
         
         actual = new Poblacion(M, L, rnd); //1. Generate a random population       
         //best = actual.getBest(func);
-        best = actual.getIndividuo(rnd.nextInt(M));//2. Select randomly and individual from the population
+        mejorInd = actual.getIndividuo(rnd.nextInt(M));//2. Select randomly and individual from the population
         System.out.println("G,Best,Fitness");
         //0. Make k <- 1
-        for(int k = 1; k<=G; k++) { //4. If k = G return best and stop(done)
-            if(this.verboseLvl>0) {
-                System.out.println(k +", " +func.getFenotipo(best) +", " +func.evalua(best)); }
-            
+        for(int k=1; k<=G; k++) { //4. If k = G return best and stop(done)
+            println(k +", " +func.getFenotipo(actual.getBest(func)) +", " +func.evalua(actual.getBest(func)));
             probs = escalaPoblacion(actual); //5. Selection
             //6. Crossover
             nva = new Poblacion(actual.getSize());
@@ -110,24 +120,24 @@ public class TGA
             }
             Genotipo b = actual.getBest(func);
             actual = nva;
-            if( func.evalua(best) < func.evalua(b) ) //max
-                best = b;
-
-            int idx = 0;
-            b = actual.getIndividuo(0);
-            for(int i=0; i<actual.getSize(); i++) {
-                if(b.evalua(func) > actual.getIndividuo(i).evalua(func)) {
-                    b = actual.getIndividuo(i);
-                    idx = i;
-                }
+            if( func.evalua(mejorInd) < func.evalua(b) ) { //max {
+                mejorInd = b;
             }
-            actual.setIndividuo(idx, b);
+            //else {
+                int idx = 0;
+                b = actual.getIndividuo(0);
+                for(int i=0; i<actual.getSize(); i++) {
+                    if(b.getFitness(func) > actual.getIndividuo(i).getFitness(func)) {
+                        b = actual.getIndividuo(i);
+                        idx = i;
+                    }
+                }
+                actual.setIndividuo(idx, b);
+            //}
         }
         
-        return best;
+        return mejorInd;
     }
-    
-    
     
     double[] escalaPoblacion(Poblacion p)
     {
@@ -142,7 +152,7 @@ public class TGA
         double F = 0.0;
         //3. Evaluate
         for(int i=0; i<tam; i++) {
-            v = p.getIndividuo(i).evalua(func);
+            v = p.getIndividuo(i).getFitness(func);
             //   get the data for offset linear scaling
             minv = Math.min(v, minv);
             prom += Math.abs(v);
@@ -152,14 +162,19 @@ public class TGA
         //   F_i = Phi(i), F, probs
         for(int i=0; i<tam; i++) {
             v = vals[i] + prom + minv;
+            //v = scale(vals[i],prom, minv);
             p.getIndividuo(i).setFitnessValue(v);
             F += v;
         }
+        
         p.sort(comp); //desc for max, asc for min
+        
         for(int i=0; i<tam; i++) { //for i=1 to n PS_i = f(x_i)/F (done)
             vals[i] = p.getIndividuo(i).getFitnessValue();
             vals[i] /= F;
         }
+        
+        
         
         return vals;
     }
@@ -169,17 +184,14 @@ public class TGA
      * @param p Probability of HEAD
      * @return True if HEAD, false else
      */
-    protected boolean toss(double p)
-    {
+    protected boolean toss(double p) {
         return rnd.nextDouble() <= p;
     }
     
-    /**
-     * CAMBIA al genotipo dado como parametro
+    /** CAMBIA al genotipo dado como parametro
      * @param g El Genotipo a mutar
      */
-    protected void mutate(Genotipo g)
-    {
+    protected void mutate(Genotipo g) {
         int tam = g.getSize();
         for(int i=0; i<tam; i++) { //for j=1 to L
             if(toss(this.P_m)) { //if rand ro<=P_m make bit_j = !bit_j 
@@ -187,7 +199,7 @@ public class TGA
             }
         }
     }
-    
+        
     /**
      * Given a vector or probabilities, select
      * proportionalitty a index
@@ -195,8 +207,7 @@ public class TGA
      * @return and index corresponding to the individual
      * select via roulette
      */
-    int escogeRuleta(double probs[])
-    {
+    int escogeRuleta(double probs[]) {
         double acum = 0;
         int res = 0;
         double tope = rnd.nextDouble();
@@ -204,14 +215,17 @@ public class TGA
             acum += probs[res];
             res++;
         }
-        if(res==probs.length)
+        if(res==probs.length) {
             res--;
+        }
+        //System.out.println("tope="+tope +", suma=" +acum +", idx=" +res);
+        //System.out.println(res +",");
         return res;
     }
     
     /**
      * Generate two new individuals with 1 point 
-     * crossover (H1X)
+     * crossover (1X)
      * @param a First parent
      * @param b Second parent
      * @return And array with 2 elements with the 
@@ -220,10 +234,10 @@ public class TGA
     protected Genotipo[] crossover(Genotipo a, Genotipo b)
     {
         Genotipo arr[] = new Genotipo[2];
-        arr[0] = new Genotipo(this.L);
-        arr[1] = new Genotipo(this.L);
+        arr[0] = new Genotipo(L);
+        arr[1] = new Genotipo(L);
         //Randomly select a locus l(pto) of the chromosome
-        int pto = (int)(rnd.nextDouble()*this.L);
+        int pto = (int)(rnd.nextDouble()*L);
         //System.out.println("Corte: " +pto);
         int i;
         //Pick the leftmost L-l bits of I(x) and the rightmost l bits of I(Y)
@@ -232,7 +246,7 @@ public class TGA
             arr[0].setGen(i, b.getGen(i));
             arr[1].setGen(i, a.getGen(i));
         }
-        for(; i<this.L; i++) {
+        for(; i<L; i++) {
             arr[0].setGen(i, a.getGen(i));
             arr[1].setGen(i, b.getGen(i));
         }
@@ -248,9 +262,10 @@ public class TGA
      * @param min Min value of the fitness function of all indiviuals
      * @return A double with Phi
      */
-    private double offsetLinealScaling(double v, double mean, double min)
+    private double scale(double v, double mean, double min)
     {
-        return v + mean+ Math.abs(min);
+        System.out.println("v=" +v +", m=" +mean +", min=" +min);
+        return v + mean + Math.abs(min);
     }
 
 }
