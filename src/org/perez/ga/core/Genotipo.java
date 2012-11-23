@@ -230,4 +230,9 @@ public class Genotipo
     {
         return this.fitness;
     }
+    
+    public void eval(IFitness f)
+    {
+        this.fitness = f.evalua(this);
+    }
 }

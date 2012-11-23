@@ -126,6 +126,11 @@ public class Poblacion
         */
     }
     
+    /**
+     * Gets the individual with the maximum fitness
+     * @param f
+     * @return 
+     */
     public Genotipo getBest(IFitness f)
     {
         Genotipo b = this.indi.get(0);

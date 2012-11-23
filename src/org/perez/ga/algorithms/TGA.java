@@ -115,22 +115,36 @@ public class TGA
             }
             Genotipo b = pobActual.getBest(func);
             pobActual = nva;
+  
+            b.eval(func);
+            mejorInd.eval(func);
             
+            /*
             if( func.evalua(mejorInd) < func.evalua(b) ) { //max {
                 mejorInd = b;
             }
-           
+            */
+            
+           if( comp.compare(b, mejorInd) < 0) {
+               mejorInd = b;
+           }
 
             int idx = 0;
             b = pobActual.getIndividuo(0);
             for(int i=0; i<pobActual.getSize(); i++) {
+                if(comp.compare(b, pobActual.getIndividuo(i)) > 0) {
+                    b = pobActual.getIndividuo(i);
+                    idx = i;
+                }
+                /*
                 if(b.getFitness(func) > pobActual.getIndividuo(i).getFitness(func)) {
                     b = pobActual.getIndividuo(i);
                     idx = i;
                 }
+                */
             }
             pobActual.setIndividuo(idx, mejorInd);
-            println(k +", " +func.getFenotipo(pobActual.getBest(func)) +", " +func.evalua(pobActual.getBest(func)));
+            println(k +", " +func.getFenotipo(pobActual.getBest(func)) +", " +func.evalua(mejorInd));
         }
         System.out.println("Mejor: " +func.getFenotipo(mejorInd) 
                             +", Fitness: " +func.evalua(mejorInd));
