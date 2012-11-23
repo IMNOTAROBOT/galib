@@ -5,5 +5,5 @@ G = 1000
 L = 10
 Func = org.perez.ga.examples.Prueba
 Mode = Maximize
-Verbose = 1
+Verbose = 0
 Seed = 1903

@@ -127,7 +127,7 @@ public class TGA
                     idx = i;
                 }
             }
-            pobActual.setIndividuo(idx, b);
+            pobActual.setIndividuo(idx, mejorInd);
             println(k +", " +func.getFenotipo(pobActual.getBest(func)) +", " +func.evalua(pobActual.getBest(func)));
         }
         System.out.println("Mejor: " +func.getFenotipo(mejorInd) 

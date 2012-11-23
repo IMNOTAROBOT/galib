@@ -5,5 +5,5 @@ G = 10000
 L = 60
 Func = org.perez.ga.examples.Tarea
 Mode = Maximize
-Verbose = 1
+Verbose = 0
 Seed = 1903
