@@ -115,9 +115,11 @@ public class TGA
             }
             Genotipo b = pobActual.getBest(func);
             pobActual = nva;
+            
             if( func.evalua(mejorInd) < func.evalua(b) ) { //max {
                 mejorInd = b;
             }
+           
 
             int idx = 0;
             b = pobActual.getIndividuo(0);

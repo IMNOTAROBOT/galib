@@ -23,7 +23,13 @@ public class GenotipoComparator
         this.mode = mode;
         this.func = func;
     }
-        
+     
+    /**
+     * Compare by stored fitness value
+     * @param o1
+     * @param o2
+     * @return 
+     */
     @Override
     public int compare(Genotipo o1, Genotipo o2) 
     {
